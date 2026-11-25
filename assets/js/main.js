@@ -146,28 +146,39 @@
   if(params.get('sent')==='1' && formStatus){
     formStatus.className='form-status success';formStatus.textContent='Thank you. Your enquiry was submitted.';
   }
-  form?.addEventListener('submit', async (event)=>{
-    // On local filesystem, PHP cannot execute. Use WhatsApp for a working offline pathway.
-    if(location.protocol==='file:') {
-      event.preventDefault();
-      const formData=new FormData(form);
-      const message=`Hello A.B International Manpower Group,\nName: ${formData.get('name')}\nPhone: ${formData.get('phone')}\nPreferred country: ${formData.get('country')}\nWork interest: ${formData.get('interest')}\nMessage: ${formData.get('message')}`;
-      window.open('https://wa.me/919887020804?text='+encodeURIComponent(message),'_blank','noopener');
-      if(formStatus){formStatus.className='form-status';formStatus.textContent='WhatsApp enquiry opened. Please send your message there.'}
-      return;
-    }
+  form?.addEventListener('submit', (event)=>{
     event.preventDefault();
-    const button=$('button[type=submit]',form);
-    if(button) button.disabled=true;
-    if(formStatus){formStatus.className='form-status';formStatus.textContent='Sending your enquiry…'}
-    try{
-      const response=await fetch(form.action,{method:'POST',body:new FormData(form),headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}});
-      const data=await response.json();
-      if(!response.ok || !data.ok) throw new Error(data.message||'The enquiry could not be sent.');
-      form.reset();
-      if(formStatus){formStatus.className='form-status success';formStatus.textContent='Thank you. Your enquiry has been sent to our office.'}
-    }catch(error){
-      if(formStatus){formStatus.className='form-status error';formStatus.textContent=(error.message||'Could not send enquiry.')+' Please contact us by WhatsApp or phone.'}
-    }finally{if(button)button.disabled=false}
+    const formData=new FormData(form);
+    const name=(formData.get('name')||'').toString().trim();
+    const phone=(formData.get('phone')||'').toString().trim();
+    const email=(formData.get('email')||'').toString().trim();
+    const country=(formData.get('country')||'').toString().trim();
+    const interest=(formData.get('interest')||'').toString().trim();
+    const messageText=(formData.get('message')||'').toString().trim();
+
+    const lines=[
+      'Hello A.B International Manpower Group,',
+      '',
+      '*New Overseas Employment Enquiry*',
+      `*Name:* ${name}`,
+      `*Phone:* ${phone}`
+    ];
+    if(email) lines.push(`*Email:* ${email}`);
+    if(country) lines.push(`*Preferred Country:* ${country}`);
+    if(interest) lines.push(`*Area of Interest:* ${interest}`);
+    if(messageText) lines.push(`*Message:* ${messageText}`);
+
+    const message=lines.join('\n');
+    const waUrl='https://wa.me/919887020804?text='+encodeURIComponent(message);
+
+    if(formStatus){
+      formStatus.className='form-status success';
+      formStatus.textContent='Redirecting directly to WhatsApp with your details...';
+    }
+
+    const win=window.open(waUrl,'_blank','noopener');
+    if(!win || win.closed || typeof win.closed==='undefined'){
+      window.location.href=waUrl;
+    }
   });
 })();
