@@ -173,12 +173,15 @@
 
     if(formStatus){
       formStatus.className='form-status success';
-      formStatus.textContent='Redirecting directly to WhatsApp with your details...';
+      formStatus.textContent='Enquiry opened in WhatsApp. Please send your message there.';
     }
 
-    const win=window.open(waUrl,'_blank','noopener');
-    if(!win || win.closed || typeof win.closed==='undefined'){
-      window.location.href=waUrl;
-    }
+    const link=document.createElement('a');
+    link.href=waUrl;
+    link.target='_blank';
+    link.rel='noopener';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   });
 })();
